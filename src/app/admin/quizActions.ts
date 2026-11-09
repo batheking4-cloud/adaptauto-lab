@@ -16,7 +16,7 @@ export async function saveQuiz(fd: FormData) {
   if (status === 'published' && !qids.length) throw new Error('Sélectionnez au moins une question avant de publier')
   const dur = Number(fd.get('duration_min')) || null
   const row = { kind, title, description: String(fd.get('description') || ''), category: String(fd.get('category') || 'Général') || 'Général',
-    difficulty: Math.min(3, Math.max(1, Number(fd.get('difficulty')) || 1)), intro_text: String(fd.get('intro_text') || ''), outro_text: String(fd.get('outro_text') || ''),
+    difficulty: Math.min(3, Math.max(1, Number(fd.get('difficulty')) || 1)), intro_text: String(fd.get('intro_text') || ''), outro_text: String(fd.get('outro_text') || ''), intro_audio_id: String(fd.get('intro_audio_id') || '') || null, outro_audio_id: String(fd.get('outro_audio_id') || '') || null,
     duration_min: kind === 'exam' ? dur : null, pass_score: Math.min(100, Math.max(0, Number(fd.get('pass_score')) || 70)), status }
   let qid = id
   if (id) { const { error } = await sb.from('quizzes').update(row).eq('id', id); if (error) throw new Error(error.message) }

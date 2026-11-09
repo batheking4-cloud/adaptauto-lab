@@ -1,10 +1,11 @@
 'use client'
 import { useState } from 'react'
 type Q = { id: string; text: string; category: string }
-export default function QuizForm({ quiz, all, selected, action }: { quiz: any; all: Q[]; selected: string[]; action: (fd: FormData) => Promise<void> }) {
+export default function QuizForm({ quiz, all, selected, media, action }: { quiz: any; all: Q[]; selected: string[]; media: { id: string; name: string }[]; action: (fd: FormData) => Promise<void> }) {
   const [sel, setSel] = useState<string[]>(selected); const exam = quiz.kind === 'exam'
   const by = (id: string) => all.find(q => q.id === id)
   const move = (i: number, d: number) => { const k = i + d; if (k < 0 || k >= sel.length) return; const c = [...sel];[c[i], c[k]] = [c[k], c[i]]; setSel(c) }
+  const au = (name: string, d: string | null) => <select className="input" name={name} defaultValue={d ?? ''}><option value="">Aucun audio</option>{media.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select>
   const f = (label: string, el: React.ReactNode) => <label className="grid gap-1"><span className="muted text-sm">{label}</span>{el}</label>
   return (
     <form action={action} className="grid gap-4">
@@ -17,7 +18,7 @@ export default function QuizForm({ quiz, all, selected, action }: { quiz: any; a
           {f('Difficulté', <select className="input" name="difficulty" defaultValue={quiz.difficulty}><option value={1}>1 - Facile</option><option value={2}>2 - Moyenne</option><option value={3}>3 - Difficile</option></select>)}
           {exam && f('Durée (minutes)', <input className="input" type="number" min={1} name="duration_min" defaultValue={quiz.duration_min ?? 20} />)}</div>
         {exam && f('Score minimum de réussite (%)', <input className="input" type="number" min={0} max={100} name="pass_score" defaultValue={quiz.pass_score} />)}
-        {!exam && <>{f('Message d’introduction', <textarea className="input" name="intro_text" rows={2} defaultValue={quiz.intro_text} />)}{f('Message de fin', <textarea className="input" name="outro_text" rows={2} defaultValue={quiz.outro_text} />)}</>}
+        {!exam && <>{f('Message d’introduction', <textarea className="input" name="intro_text" rows={2} defaultValue={quiz.intro_text} />)}{f('Message de fin', <textarea className="input" name="outro_text" rows={2} defaultValue={quiz.outro_text} />)}{f('Audio d’introduction', au('intro_audio_id', quiz.intro_audio_id))}{f('Audio de fin', au('outro_audio_id', quiz.outro_audio_id))}</>}
       </div>
       <div className="glass p-5 grid gap-2"><p className="font-semibold">Questions choisies ({sel.length}) <span className="muted text-sm font-normal">dans l’ordre de passage</span></p>
         {sel.map((id, i) => <div key={id} className="flex items-center gap-2"><span className="flex-1">{i + 1}. {by(id)?.text ?? '(supprimée)'}</span>

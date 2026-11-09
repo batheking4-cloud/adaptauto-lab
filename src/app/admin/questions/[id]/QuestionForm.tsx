@@ -1,11 +1,13 @@
 'use client'
 import { useState } from 'react'
 type Opt = { text: string; is_correct: boolean }
-type Q = { id: string; text: string; category: string; difficulty: number; qtype: string; explanation: string }
-export default function QuestionForm({ q, opts, action }: { q: Q; opts: Opt[]; action: (fd: FormData) => Promise<void> }) {
+type Q = { id: string; text: string; category: string; difficulty: number; qtype: string; explanation: string; image_id?: string | null; audio_id?: string | null; correction_audio_id?: string | null; audio_autoplay?: boolean }
+type Media = { id: string; name: string; kind: string }
+export default function QuestionForm({ q, opts, media, action }: { q: Q; opts: Opt[]; media: Media[]; action: (fd: FormData) => Promise<void> }) {
   const [type, setType] = useState(q.qtype)
   const [options, setOptions] = useState<Opt[]>(opts)
   const [err, setErr] = useState('')
+  const ms = (name: string, label: string, kind: string, def?: string | null) => <label className="grid gap-1"><span className="muted text-sm">{label}</span><select className="input" name={name} defaultValue={def ?? ''}><option value="">Aucun</option>{media.filter(m => m.kind === kind).map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
   const tf = type === 'truefalse'
   function changeType(t: string) {
     setType(t)
@@ -50,6 +52,7 @@ export default function QuestionForm({ q, opts, action }: { q: Q; opts: Opt[]; a
           </div>))}
         {!tf && <button type="button" className="btn btn-ghost" onClick={() => setOptions([...options, { text: '', is_correct: false }])}>Ajouter une proposition</button>}
       </div>
+      <div className="glass p-5 grid gap-3"><p className="font-semibold">Image et audio (facultatifs, importés dans Images / MIXAGE)</p><div className="grid gap-3 sm:grid-cols-3">{ms('image_id', 'Image', 'image', q.image_id)}{ms('audio_id', 'Audio de la question', 'audio', q.audio_id)}{ms('correction_audio_id', 'Audio de correction', 'audio', q.correction_audio_id)}</div><label className="flex items-center gap-2"><input type="checkbox" name="audio_autoplay" defaultChecked={!!q.audio_autoplay} style={{ width: 22, height: 22 }} /> Lecture automatique de l’audio de la question (sinon bouton haut-parleur)</label></div>
       <div className="glass p-5"><label className="grid gap-1"><span className="muted text-sm">Explication (affichée à l’élève après sa réponse)</span><textarea className="input" name="explanation" rows={4} defaultValue={q.explanation} /></label></div>
       {err && <p role="alert" style={{ color: '#ff6b6b' }}>{err}</p>}
       <div className="flex gap-3"><button className="btn">Enregistrer la question</button><a href="/admin/questions" className="btn btn-ghost">Annuler</a></div>

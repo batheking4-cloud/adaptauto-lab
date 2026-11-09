@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireRole } from '@/lib/auth'
 import { Ring, Bars, lastDays } from '@/components/Viz'
+import ActivityPanel from '@/components/ActivityPanel'
 export default async function Admin() {
   const { sb, profile } = await requireRole('admin')
   const c = (t: string, f?: (q: any) => any) => { let q: any = sb.from(t).select('id', { count: 'exact', head: true }); if (f) q = f(q); return q }
@@ -15,13 +16,14 @@ export default async function Admin() {
   const hard = Object.values(qa).filter(x => x.w).sort((a, b) => b.w / b.n - a.w / a.n).slice(0, 5)
   const hardC = Object.entries(ca).filter(([, x]) => x.w).sort((a, b) => b[1].w / b[1].n - a[1].w / a[1].n).slice(0, 3)
   const tiles: [string, number][] = [['Élèves', st.count ?? 0], ['Questions', qs.count ?? 0], ['Mini-jeux', gm.count ?? 0], ['Examens', ex.count ?? 0], ['Quiz effectués', ag.count ?? 0], ['Examens réalisés', ae.count ?? 0]]
-  const nav: [string, string][] = [['Élèves', '/admin/eleves'], ['Questions', '/admin/questions'], ['Mini-jeux', '/admin/q/jeux'], ['Examens blancs', '/admin/q/examens'], ['Apparence', '/admin/reglages']]
+  const nav: [string, string][] = [['Élèves', '/admin/eleves'], ['Questions', '/admin/questions'], ['Mini-jeux', '/admin/q/jeux'], ['Examens blancs', '/admin/q/examens'], ['Parcours', '/admin/parcours'], ['Images', '/admin/images'], ['MIXAGE', '/admin/mixage'], ['Apparence', '/admin/reglages']]
   return (<>
     <section className="glass p-6 grid gap-4 sm:grid-cols-[auto_1fr] items-center">
       <Ring value={avg} label="moyenne générale" />
       <div className="grid gap-3"><div><p className="muted text-sm">Tableau de bord</p><h1 className="text-3xl font-semibold tracking-tight">Bonjour {profile.full_name || 'administrateur'}</h1></div>
         <div><p className="muted text-sm mb-1">Parties jouées ces 7 derniers jours</p><Bars data={lastDays((rec.data ?? []).map((x: any) => x.created_at))} /></div></div>
     </section>
+    <ActivityPanel />
     <nav className="flex gap-2 flex-wrap" aria-label="Gestion">{nav.map(([t, h]) => <Link key={h} href={h} className="btn btn-ghost">{t}</Link>)}</nav>
     <section className="grid gap-3 grid-cols-2 lg:grid-cols-3">{tiles.map(([l, v]) => <div key={l} className="glass p-5"><p className="muted text-sm">{l}</p><p className="text-4xl font-semibold">{v}</p></div>)}</section>
     <section className="grid gap-3 sm:grid-cols-2"><div className="glass p-5"><h2 className="font-semibold mb-2">Questions les plus difficiles</h2>{hard.length ? hard.map(x => <p key={x.t} className="text-sm">{x.t} <span className="muted">· {Math.round(100 * x.w / x.n)} % d’erreurs</span></p>) : <p className="muted text-sm">Pas encore de données.</p>}</div>

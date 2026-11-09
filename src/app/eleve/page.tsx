@@ -20,5 +20,5 @@ export default async function Eleve() {
         <Link href={`/eleve/jouer/${next.id}`} className="btn" style={{ width: 'auto' }}>{next.kind === 'exam' ? 'Passer l’examen' : 'Jouer'}</Link></> : <p className="muted">Aucun contenu publié pour l’instant.</p>}
         <div><p className="muted text-sm mb-1">Mon activité (7 jours)</p><Bars data={lastDays(a.map(x => x.created_at))} /></div></div></section>
     <section className="grid gap-3 grid-cols-2 lg:grid-cols-3">{stats.map(([l, v]) => <div key={l} className="glass p-5"><p className="muted text-sm">{l}</p><p className="text-3xl font-semibold">{v}</p></div>)}</section>
-    <nav className="flex gap-2 flex-wrap"><Link href="/eleve/quiz" className="btn" style={{ width: 'auto' }}>Mini-jeux, quiz et examens</Link><Link href="/eleve/erreurs" className="btn btn-ghost">M’entraîner sur mes erreurs</Link><Link href="/eleve/resultats" className="btn btn-ghost">Mes résultats</Link></nav></main>
+    <nav className="flex gap-2 flex-wrap"><Link href="/eleve/parcours" className="btn" style={{ width: 'auto' }}>Mes parcours</Link><Link href="/eleve/quiz" className="btn" style={{ width: 'auto' }}>Mini-jeux, quiz et examens</Link><Link href="/eleve/erreurs" className="btn btn-ghost">M’entraîner sur mes erreurs</Link><Link href="/eleve/resultats" className="btn btn-ghost">Mes résultats</Link></nav></main>
 }

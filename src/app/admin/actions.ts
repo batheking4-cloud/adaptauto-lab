@@ -22,7 +22,8 @@ export async function saveQuestion(fd: FormData) {
   if (options.length < 2 || options.some(o => !o.text.trim())) throw new Error('Au moins 2 propositions non vides')
   if (good < 1 || (qtype !== 'multiple' && good !== 1)) throw new Error('Nombre de bonnes réponses incorrect')
   const row = { text, qtype, category: String(fd.get('category') || 'Général').trim() || 'Général',
-    difficulty: Math.min(3, Math.max(1, Number(fd.get('difficulty')) || 1)), explanation: String(fd.get('explanation') || '') }
+    difficulty: Math.min(3, Math.max(1, Number(fd.get('difficulty')) || 1)), explanation: String(fd.get('explanation') || ''),
+    image_id: String(fd.get('image_id') || '') || null, audio_id: String(fd.get('audio_id') || '') || null, correction_audio_id: String(fd.get('correction_audio_id') || '') || null, audio_autoplay: fd.get('audio_autoplay') === 'on' }
   let qid = id
   if (id) { const { error } = await sb.from('questions').update(row).eq('id', id); if (error) throw new Error(error.message) }
   else { const { data, error } = await sb.from('questions').insert(row).select('id').single(); if (error) throw new Error(error.message); qid = data.id }
