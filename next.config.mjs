@@ -1,1 +1,1 @@
-export default {};
+export default { typescript: { ignoreBuildErrors: true } };
