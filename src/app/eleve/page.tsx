@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { requireRole } from '@/lib/auth'
 import { Ring, Bars, lastDays } from '@/components/Viz'
+import Logo from '@/components/Logo'
 export default async function Eleve() {
   const { sb, user, profile } = await requireRole('student')
   const [{ data: att }, { data: pub }, { data: err }] = await Promise.all([
@@ -13,7 +14,7 @@ export default async function Eleve() {
   const stats: [string, string | number][] = [['Quiz effectués', a.filter(x => x.kind === 'game').length], ['Examens passés', a.filter(x => x.kind === 'exam').length], ['Meilleur score', (a.length ? Math.max(...a.map(x => x.score_pct)) : 0) + ' %'],
     ['Bonnes réponses', a.reduce((s, x) => s + x.correct, 0)], ['Mauvaises réponses', a.reduce((s, x) => s + x.wrong, 0)], ['Erreurs à revoir', nerr]]
   return <main className="max-w-5xl mx-auto p-5 pb-16 grid gap-5">
-    <header className="flex items-center justify-between gap-3"><div><p className="muted text-sm">ADAPT’AUTO LAB</p><h1 className="text-3xl font-semibold tracking-tight">Bonjour {profile.full_name || ''}</h1></div>
+    <header className="flex items-center justify-between gap-3"><div><Logo height={46} /><h1 className="text-3xl font-semibold tracking-tight">Bonjour {profile.full_name || ''}</h1></div>
       <form action="/auth/signout" method="post"><button className="btn btn-ghost">Se déconnecter</button></form></header>
     <section className="glass p-6 grid gap-5 sm:grid-cols-[auto_1fr] items-center"><Ring value={prog} label="progression" />
       <div className="grid gap-3">{next ? <><p className="muted text-sm">{done.has(next.id) ? 'Rejouer' : 'Continuer'}</p><p className="text-2xl font-semibold">{next.title}</p>

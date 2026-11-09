@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-const PRESETS: [string, string][] = [['Bleu', '#0a84ff'], ['Vert', '#30d158'], ['Orange', '#ff9f0a'], ['Violet', '#bf5af2'], ['Rose', '#ff375f']]
+const PRESETS: [string, string][] = [['Bleu', '#1a8cff'], ['Rouge ADAPT’AUTO', '#d7191f'], ['Bleu roi', '#0071bc'], ['Vert', '#30d158'], ['Orange', '#ff9f0a'], ['Violet', '#bf5af2'], ['Rose', '#ff375f']]
 export default function SettingsForm({ mode: m0, color: c0, action }: { mode: string; color: string; action: (fd: FormData) => Promise<void> }) {
   const [mode, setMode] = useState(m0); const [color, setColor] = useState(c0)
   return (

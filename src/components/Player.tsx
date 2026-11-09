@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 type Opt = { id: string; text: string }
-type Q = { id: string; text: string; qtype: string; options: Opt[]; image_path?: string | null; audio_path?: string | null; autoplay?: boolean }
+type Q = { id: string; text: string; qtype: string; options: Opt[]; image_path?: string | null; audio_path?: string | null; audio_text?: string | null; autoplay?: boolean }
 export type Quiz = { id: string; kind: string; title: string; intro_text: string; outro_text: string; duration_min: number | null; pass_score: number; questions: Q[]; intro_audio?: string | null; outro_audio?: string | null }
 type Det = { question_id: string; text: string; selected: string[]; correct_ids: string[]; is_correct: boolean; explanation: string; options: Opt[] }
 type Res = { score_pct: number; correct: number; wrong: number; total: number; passed: boolean | null; pass_score: number; details: Det[] }
@@ -76,7 +76,7 @@ export default function Player({ quiz, practice = false, preview = false }: { qu
       <div className="glass p-4 grid gap-2"><div className="flex justify-between muted text-sm"><span>Question {i + 1} / {quiz.questions.length}</span>{exam && quiz.duration_min ? <span role="timer">Temps restant {mm}</span> : null}</div>
         <div style={{ height: 8, borderRadius: 4, background: 'var(--line)' }}><div style={{ height: 8, borderRadius: 4, background: 'var(--accent)', width: `${(i + (fb ? 1 : 0)) / quiz.questions.length * 100}%`, transition: 'width .3s' }} /></div></div>
       <div className="glass p-6 grid gap-3">{q.image_path && <img src={base + q.image_path} alt="Illustration de la question" style={{ width: '100%', maxHeight: 260, objectFit: 'contain', borderRadius: 16 }} />}<h2 className="text-xl font-semibold">{q.text}</h2>
-        <div className="flex items-center gap-2 flex-wrap muted text-sm">{q.audio_path && <button type="button" className="btn btn-ghost" onClick={() => play(q.audio_path)}>🔊 Écouter la question</button>}<button type="button" className="btn btn-ghost" onClick={() => { setMuted(!muted); aud.current?.pause() }}>{muted ? '🔇 Son coupé' : '🔊 Son activé'}</button><input type="range" min="0" max="1" step="0.1" value={vol} onChange={e => setVol(Number(e.target.value))} aria-label="Volume" /></div>
+        <div className="flex items-center gap-2 flex-wrap muted text-sm">{q.audio_path && <button type="button" className="btn btn-ghost" onClick={() => play(q.audio_path)}>🔊 Écouter la question</button>}<button type="button" className="btn btn-ghost" onClick={() => { setMuted(!muted); aud.current?.pause() }}>{muted ? '🔇 Son coupé' : '🔊 Son activé'}</button><input type="range" min="0" max="1" step="0.1" value={vol} onChange={e => setVol(Number(e.target.value))} aria-label="Volume" /></div>{q.audio_text && <details className="muted text-sm"><summary style={{ cursor: 'pointer' }}>Voir le texte de l’audio</summary><p style={{ marginTop: 6 }}>{q.audio_text}</p></details>}
         {q.qtype === 'multiple' && <p className="muted text-sm">Plusieurs réponses possibles.</p>}
         {q.options.map(o => { const on = sel.includes(o.id); const good = fb?.correct_ids.includes(o.id)
           const st = fb ? (good ? { borderColor: '#30d158' } : on ? { borderColor: '#ff6b6b' } : {}) : on ? { borderColor: 'var(--accent)' } : {}

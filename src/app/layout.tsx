@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { createClient } from '@/lib/supabase/server'
-export const metadata: Metadata = { title: "ADAPT'AUTO LAB", description: "Apprentissage du Code de la route (prototype)" }
+export const metadata: Metadata = { title: "ADAPT'AUTO LAB", description: "Apprentissage du Code de la route (prototype)", icons: { icon: "/logo.png" } }
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 }
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let mode = 'dark', color = '#0a84ff'
