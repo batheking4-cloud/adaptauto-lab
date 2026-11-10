@@ -40,7 +40,7 @@ export async function saveSettings(fd: FormData) {
   const mode = reset ? 'dark' : fd.get('mode') === 'light' ? 'light' : 'dark'
   const color = reset ? '#0a84ff' : String(fd.get('color'))
   if (!/^#[0-9a-fA-F]{6}$/.test(color)) throw new Error('Couleur invalide')
-  const { error } = await sb.from('app_settings').update({ mode, primary_color: color, updated_at: new Date().toISOString() }).eq('id', 1)
+  const { error } = await sb.from('app_settings').update({ mode, primary_color: color, whatsapp_number: String(fd.get('wa') || '').replace(/[^0-9+]/g, '').slice(0, 16), updated_at: new Date().toISOString() }).eq('id', 1)
   if (error) throw new Error(error.message)
   revalidatePath('/', 'layout')
 }

@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 const PRESETS: [string, string][] = [['Bleu', '#1a8cff'], ['Rouge ADAPT’AUTO', '#d7191f'], ['Bleu roi', '#0071bc'], ['Vert', '#30d158'], ['Orange', '#ff9f0a'], ['Violet', '#bf5af2'], ['Rose', '#ff375f']]
-export default function SettingsForm({ mode: m0, color: c0, action }: { mode: string; color: string; action: (fd: FormData) => Promise<void> }) {
+export default function SettingsForm({ mode: m0, color: c0, wa, action }: { mode: string; color: string; wa: string; action: (fd: FormData) => Promise<void> }) {
   const [mode, setMode] = useState(m0); const [color, setColor] = useState(c0)
   return (
     <form action={action} className="grid gap-4">
@@ -16,6 +16,7 @@ export default function SettingsForm({ mode: m0, color: c0, action }: { mode: st
           <label className="flex items-center gap-2 muted text-sm">Personnalisée <input type="color" value={color} onChange={e => setColor(e.target.value)} aria-label="Couleur personnalisée" /></label>
         </div>
       </div>
+      <div className="glass p-5 grid gap-2"><p className="font-semibold">WhatsApp de l’auto-école</p><input className="input" name="wa" type="tel" defaultValue={wa} placeholder="+221 77 000 00 00" /><p className="muted text-sm">Affiché en bouton WhatsApp vert sur le site : les visiteurs et élèves vous écrivent en un appui. Laissez vide pour le masquer.</p></div>
       <div data-mode={mode} style={{ ['--accent' as string]: color, color: 'var(--text)', background: 'var(--bg)', borderRadius: 28, padding: 16 }}>
         <p className="muted text-sm" style={{ marginBottom: 8 }}>Aperçu (pas encore enregistré)</p>
         <div className="glass p-5 grid gap-3"><p className="font-semibold">Question d’exemple</p><p className="muted">Que faire devant un feu rouge fixe ?</p><span className="btn" style={{ pointerEvents: 'none' }}>Valider ma réponse</span></div>

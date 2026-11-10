@@ -7,7 +7,7 @@ import RoadScene from '@/components/RoadScene'
 type Mode = 'login' | 'signup' | 'forgot'
 export default function Login() {
   const router = useRouter(); const sb = createClient()
-  const [mode, setMode] = useState<Mode>('login'); const [name, setName] = useState(''); const [email, setEmail] = useState(''); const [pw, setPw] = useState('')
+  const [mode, setMode] = useState<Mode>('login'); const [name, setName] = useState(''); const [phone, setPhone] = useState(''); const [email, setEmail] = useState(''); const [pw, setPw] = useState('')
   const [note, setNote] = useState<{ t: 'ok' | 'err'; m: string } | null>(null); const [busy, setBusy] = useState(false)
   const fail = (m: string) => setNote({ t: 'err', m: `✗ Connexion échouée : ${m}` })
   async function submit(e: React.FormEvent) {
@@ -19,7 +19,8 @@ export default function Login() {
     }
     if (mode === 'signup') {
       if (pw.length < 8) { setNote({ t: 'err', m: '✗ Inscription impossible : 8 caractères minimum pour le mot de passe.' }); return setBusy(false) }
-      const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { full_name: name }, emailRedirectTo: `${location.origin}/auth/callback` } })
+      if (!/^\+?[0-9][0-9 ]{7,17}$/.test(phone.trim())) { setNote({ t: 'err', m: '✗ Inscription impossible : numéro WhatsApp invalide (ex. +221 77 000 00 00).' }); return setBusy(false) }
+      const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { full_name: name, phone }, emailRedirectTo: `${location.origin}/auth/callback` } })
       if (error) { setNote({ t: 'err', m: `✗ Inscription impossible : ${error.message}` }); return setBusy(false) }
       if (data.session) { setNote({ t: 'ok', m: '✓ Compte créé. Redirection…' }); setTimeout(() => { router.replace('/'); router.refresh() }, 900); return }
       setNote({ t: 'ok', m: '✓ Compte créé. Vérifiez votre e-mail pour confirmer, puis connectez-vous.' }); return setBusy(false)
@@ -44,6 +45,7 @@ export default function Login() {
           <p className="muted text-sm" style={{ letterSpacing: '.08em', textTransform: 'uppercase' }}>{title}</p>
           <div className="grid gap-4 w-full">
             {mode === 'signup' && <input className="input" placeholder="Nom complet" value={name} onChange={e => setName(e.target.value)} required autoComplete="name" />}
+            {mode === 'signup' && <><input className="input" type="tel" placeholder="Numéro WhatsApp (+221 77 000 00 00)" value={phone} onChange={e => setPhone(e.target.value)} required autoComplete="tel" /><p className="muted text-xs" style={{ marginTop: -8 }}>Utilisé uniquement par l’auto-école pour vous contacter sur WhatsApp.</p></>}
             <input className="input" type="email" placeholder="E-mail" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
             {mode !== 'forgot' && <input className="input" type="password" placeholder="Mot de passe" value={pw} onChange={e => setPw(e.target.value)} required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />}</div>
           <div aria-live="polite" className="w-full">{note && <div role={note.t === 'err' ? 'alert' : 'status'} className={`note ${note.t}`} key={note.m}>{note.m}</div>}</div>

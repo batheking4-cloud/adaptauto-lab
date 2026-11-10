@@ -143,3 +143,11 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--acce
 .mhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 85%,#fff),var(--accent));box-shadow:0 6px 14px color-mix(in srgb,var(--accent) 40%,transparent)}
 .secthead{display:flex;justify-content:space-between;align-items:baseline;margin:6px 2px -4px}
+/* ===== WhatsApp (gratuit) ===== */
+@keyframes ping{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.7);opacity:0}}
+.wafab{position:fixed;right:16px;bottom:104px;z-index:55;width:56px;height:56px;border-radius:50%;background:#25d366;display:grid;place-items:center;box-shadow:0 8px 20px rgba(37,211,102,.5);animation:pop .5s ease both;transition:transform .2s}
+.wafab::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid #25d366;animation:ping 2.4s ease-out infinite;pointer-events:none}
+.wafab:hover{transform:scale(1.08) rotate(-6deg)}
+@media(min-width:1024px){.wafab{bottom:24px;right:24px}}
+.wabtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:999px;background:#25d366;color:#fff;font-weight:600;font-size:14px;text-decoration:none;box-shadow:0 6px 16px rgba(37,211,102,.4);transition:transform .2s,filter .2s}
+.wabtn:hover{transform:translateY(-2px);filter:brightness(1.06)}.wabtn:active{transform:scale(.97)}

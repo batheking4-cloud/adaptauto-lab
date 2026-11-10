@@ -24,16 +24,18 @@ export default function Player({ quiz, practice = false, preview = false, back =
   const [err, setErr] = useState(''); const [busy, setBusy] = useState(false); const [left, setLeft] = useState((quiz.duration_min ?? 0) * 60)
   const [paused, setPaused] = useState(false); const [mood, setMood] = useState<'idle' | 'happy' | 'sad'>('idle'); const done = useRef(false)
   const q = quiz.questions[i]
-  const aud = useRef<HTMLAudioElement | null>(null); const [vol, setVol] = useState(1); const [muted, setMuted] = useState(false)
+  const aud = useRef<HTMLAudioElement | null>(null); const queue = useRef<string[]>([]); const skip = useRef(false)
   const base = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/media/`
-  function play(path?: string | null) { if (!path || muted) return; aud.current?.pause(); const a = new Audio(base + path); a.volume = vol; aud.current = a; a.play().catch(() => {}) }
-  useEffect(() => { if (aud.current) aud.current.volume = vol }, [vol])
-  useEffect(() => { if (phase === 'play' && q?.autoplay) play(q.audio_path) }, [i, phase])
+  function playNext() { const p = queue.current.shift(); if (p && aud.current) { aud.current.src = base + p; aud.current.play().catch(() => {}) } }
+  function play(...paths: (string | null | undefined)[]) { if (!aud.current) { aud.current = new Audio(); aud.current.onended = playNext } aud.current.pause(); queue.current = paths.filter(Boolean) as string[]; playNext() }
+  function start() { skip.current = true; play(quiz.intro_audio, quiz.questions[0]?.audio_path); setPhase('play') }
+  useEffect(() => { if (phase !== 'play') return; if (skip.current) { skip.current = false; return } play(q?.audio_path) }, [i, phase])
+  useEffect(() => () => { aud.current?.pause() }, [])
   async function finish() {
     if (done.current) return; done.current = true; setBusy(true)
     if (practice) { const c = answers.current.filter((a: any) => a.ok).length, n = quiz.questions.length; setRes({ score_pct: Math.round(100 * c / Math.max(1, n)), correct: c, wrong: n - c, total: n, passed: null, pass_score: 0, details: [] }); setPhase('end'); return setBusy(false) }
     const { data, error } = await sb.rpc('submit_attempt', { p_quiz: quiz.id, p_answers: answers.current, p_preview: preview })
-    if (error) { setErr(error.message); done.current = false } else { setRes(data as Res); setPhase('end'); if (!exam) play(quiz.outro_audio) }
+    if (error) { setErr(error.message); done.current = false } else { setRes(data as Res); setPhase('end'); if (!exam && quiz.outro_audio) play(quiz.outro_audio) }
     setBusy(false)
   }
   useEffect(() => { if (phase !== 'play' || !exam || !quiz.duration_min) return; const t = setInterval(() => setLeft(l => l - 1), 1000); return () => clearInterval(t) }, [phase])
@@ -43,7 +45,7 @@ export default function Player({ quiz, practice = false, preview = false, back =
   async function validate() {
     setBusy(true); setErr(''); const { data, error } = await sb.rpc('check_answer', { p_question: q.id, p_selected: sel, p_record: practice }); setBusy(false)
     if (error) return setErr(error.message)
-    setFb(data); setMood(data.is_correct ? 'happy' : 'sad'); if (!exam) play(data.correction_audio_path)
+    setFb(data); setMood(data.is_correct ? 'happy' : 'sad'); if (!exam && data.correction_audio_path) play(data.correction_audio_path)
     answers.current = [...answers.current.filter(x => x.question_id !== q.id), { question_id: q.id, selected: sel, ok: data.is_correct }]
   }
   function next() {
@@ -68,13 +70,13 @@ export default function Player({ quiz, practice = false, preview = false, back =
   if (!quiz.questions.length) return scene(<p className="gq">Ce contenu ne contient aucune question.</p>)
   if (phase === 'intro') return scene(<div className="grid gap-4 justify-items-center"><p className="gcount">{quiz.questions.length} QUESTIONS{exam && quiz.duration_min ? ` · ${quiz.duration_min} MIN · RÉUSSITE ${quiz.pass_score} %` : ''}</p>
     <h2 className="gq">{quiz.intro_text || (exam ? 'Examen blanc : pas de correction pendant l’épreuve.' : 'Prêt à rouler ? Réponds, la correction est immédiate !')}</h2>
-    {quiz.intro_audio && <button className="gpill" onClick={() => play(quiz.intro_audio)}>🔊 Écouter la présentation</button>}<button className="gprimary" onClick={() => setPhase('play')}>Démarrer</button></div>)
+    {(quiz.intro_audio || quiz.questions.some(x => x.audio_path)) && <p className="gcount">🔊 LE SON SE LANCE AUTOMATIQUEMENT : MONTEZ LE VOLUME</p>}<button className="gprimary" onClick={start}>Démarrer</button></div>)
   if (phase === 'end' && res) return scene(<div className="grid gap-3 justify-items-center">
     {win && <div className="confetti" aria-hidden="true">{Array.from({ length: 18 }, (_, k) => <i key={k} style={{ ['--l' as string]: `${(k * 37) % 100}%`, ['--h' as string]: (k * 47) % 360, ['--d' as string]: `${(k % 6) * .35}s` }} />)}</div>}
     <p className="gcount">{res.passed === null ? 'RÉSULTAT' : res.passed ? 'EXAMEN RÉUSSI' : 'EXAMEN NON RÉUSSI'}</p><p style={{ fontSize: 'clamp(54px,12vw,96px)', fontWeight: 900, color: win ? '#2fbf71' : '#e5383b', lineHeight: 1, animation: 'pop .6s ease both' }}>{res.score_pct} %</p>
     <p className="gq" style={{ margin: 0 }}>{res.correct} bonnes · {res.wrong} mauvaises · {res.total} questions</p>{res.passed !== null && <p className="gcount">SEUIL {res.pass_score} %</p>}
     {!exam && quiz.outro_text && <p style={{ fontWeight: 700 }}>{quiz.outro_text}</p>}{preview && <p className="gcount">APERÇU : NON ENREGISTRÉ</p>}
-    <div className="gcta"><Link href="/eleve/erreurs" className="gprimary" style={{ textDecoration: 'none' }}>M’entraîner sur mes erreurs</Link><Link href={back} className="gpill">Retour</Link></div></div>,
+    <div className="gcta"><Link href="/eleve/erreurs" className="gprimary" style={{ textDecoration: 'none' }}>M’entraîner sur mes erreurs</Link><a className="gpill" style={{ background: '#25d366', color: '#fff' }} target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(`J’ai obtenu ${res.score_pct} % à « ${title} » sur ADAPT’AUTO LAB !`)}`}>Partager sur WhatsApp</a><Link href={back} className="gpill">Retour</Link></div></div>,
     res.details.length > 0 && <div className="gdetails">{res.details.map((d, n) => <div key={d.question_id} className="gwhite"><p style={{ fontWeight: 800 }}>{n + 1}. {d.text}</p>
       {d.options.map(o => { const good = d.correct_ids.includes(o.id), pick = d.selected.includes(o.id); return <p key={o.id} style={{ color: good ? '#1f9d55' : pick ? '#e5383b' : 'inherit' }}>{good ? '✓' : pick ? '✗' : '•'} {o.text}{pick ? ' (votre réponse)' : ''}</p> })}
       <p style={{ color: '#6b7280', fontSize: 14 }}>{d.is_correct ? 'Bonne réponse.' : 'Réponse incorrecte.'} {d.explanation}</p></div>)}</div>)
@@ -83,8 +85,7 @@ export default function Player({ quiz, practice = false, preview = false, back =
     <p className="gcount">{i + 1} / {quiz.questions.length}</p><div className="gbar"><i style={{ width: `${(i + (fb ? 1 : 0)) / quiz.questions.length * 100}%` }} /></div>
     {q.image_path && <img src={base + q.image_path} alt="Illustration de la question" style={{ maxHeight: 200, margin: '0 auto 14px', borderRadius: 20, objectFit: 'contain', maxWidth: '100%' }} />}
     <h2 className="gq" key={q.id} style={{ animation: 'rise .4s ease both' }}>{q.text}</h2>
-    <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12 }}>{q.audio_path && <button className="gpill" onClick={() => play(q.audio_path)}>🔊 Écouter</button>}
-      <button className="gpill" onClick={() => { setMuted(!muted); aud.current?.pause() }}>{muted ? '🔇 Son coupé' : '🔊 Son activé'}</button><input type="range" min="0" max="1" step="0.1" value={vol} onChange={e => setVol(Number(e.target.value))} aria-label="Volume" /></div>
+    {q.audio_path && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}><button className="gpill" onClick={() => play(q.audio_path)}>🔁 Réécouter</button></div>}
     {q.audio_text && <details style={{ marginBottom: 10, color: '#475569', fontSize: 14 }}><summary style={{ cursor: 'pointer' }}>Voir le texte de l’audio</summary><p>{q.audio_text}</p></details>}
     {q.qtype === 'multiple' && <p className="gcount" style={{ marginBottom: 10 }}>PLUSIEURS RÉPONSES POSSIBLES</p>}
     <div className="gans">{q.options.map((o, k) => { const on = sel.includes(o.id), good = fb?.correct_ids.includes(o.id)
