@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Logo from '@/components/Logo'
+import RoadScene from '@/components/RoadScene'
 type Mode = 'login' | 'signup' | 'forgot'
 export default function Login() {
   const router = useRouter(); const sb = createClient()
@@ -30,7 +31,12 @@ export default function Login() {
   return (
     <div className="stage-wrap"><div className="stage">
       <svg className="blob" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M0 0H640C600 110 500 150 420 240C340 330 330 440 230 520C150 585 70 600 0 640Z" /><path d="M1600 900V610C1520 690 1430 700 1380 780C1350 830 1310 870 1270 900Z" /></svg>
-      <div className="watermark" aria-hidden="true">ADAPT’AUTO</div>
+      <div className="hero hidden lg:flex flex-col justify-between">
+        <div className="grid gap-5"><div style={{ width: 'fit-content', background: '#fff', borderRadius: 24, padding: 6 }}><Logo height={72} /></div>
+          <p className="kick">Apprentissage du Code de la route</p><h2>La conduite accessible à tous.</h2>
+          <p className="lead">Cours, mini-jeux, quiz et examens blancs pour préparer le Code de la route à votre rythme.</p>
+          <div className="flex flex-wrap gap-3">{[['📚', 'Cours et parcours'], ['🎮', 'Mini-jeux interactifs'], ['📝', 'Examens blancs'], ['🔊', 'Audio et accessibilité']].map(([i, l], k) => <span key={l} className="hpill" style={{ animationDelay: `${k * .6}s` }}><span aria-hidden="true">{i}</span>{l}</span>)}</div></div>
+        <RoadScene /></div>
       <form onSubmit={submit} className="phone" aria-label={title}>
         <div className="notch" />
         <div className="grid gap-5 justify-items-center py-3">
