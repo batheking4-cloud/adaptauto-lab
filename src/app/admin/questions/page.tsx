@@ -4,7 +4,7 @@ import { deleteQuestion } from '../actions'
 const T: Record<string, string> = { single: 'Réponse unique', multiple: 'Réponses multiples', truefalse: 'Vrai ou faux' }
 export default async function Questions() {
   const { sb } = await requireRole('admin')
-  const { data } = await sb.from('questions').select('id, text, category, difficulty, qtype, is_demo').order('created_at', { ascending: false })
+  const { data } = await sb.from('questions').select('id, text, category, difficulty, qtype, is_demo').neq('kind', 'slide').order('created_at', { ascending: false })
   return (<>
     <div className="flex items-center justify-between gap-3 flex-wrap">
       <h1 className="text-3xl font-semibold tracking-tight">Banque de questions</h1>

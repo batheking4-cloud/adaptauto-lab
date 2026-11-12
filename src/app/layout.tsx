@@ -8,7 +8,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let mode = 'dark', color = '#0a84ff', wa = ''
   try {
     const sb = await createClient()
-    const { data } = await sb.from('app_settings').select('mode, primary_color, whatsapp_number').eq('id', 1).maybeSingle()
+    const { data } = await sb.from('app_settings').select('*').eq('id', 1).maybeSingle()
     if (data) { mode = data.mode === 'light' ? 'light' : 'dark'; if (/^#[0-9a-fA-F]{6}$/.test(data.primary_color)) color = data.primary_color; wa = data.whatsapp_number || '' }
   } catch {}
   return <html lang="fr" data-mode={mode}><body style={{ ['--accent' as string]: color }}>{children}{wa && <WaFab number={wa} />}</body></html>

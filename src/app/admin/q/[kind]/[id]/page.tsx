@@ -11,7 +11,7 @@ export default async function Edit({ params }: { params: Promise<{ kind: string;
     const { data } = await sb.from('quizzes').select('*').eq('id', id).single(); if (!data) notFound(); quiz = data
     const { data: s } = await sb.from('quiz_questions').select('question_id').eq('quiz_id', id).order('position'); selected = (s ?? []).map(x => x.question_id)
   }
-  const { data: all } = await sb.from('questions').select('id, text, category').order('created_at', { ascending: false })
+  const { data: all } = await sb.from('questions').select('id, text, category').neq('kind', 'slide').order('created_at', { ascending: false })
   const { data: media } = await sb.from('media').select('id, name, kind').eq('kind', 'audio').order('name')
   return <QuizForm quiz={quiz} all={all ?? []} selected={selected} media={media ?? []} action={saveQuiz} />
 }

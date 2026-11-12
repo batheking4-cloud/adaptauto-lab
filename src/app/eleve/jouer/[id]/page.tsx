@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import Player, { type Quiz } from '@/components/Player'
 export default async function Jouer({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ apercu?: string }> }) {
@@ -6,5 +7,8 @@ export default async function Jouer({ params, searchParams }: { params: Promise<
   const sb = await createClient(); const { data: { user } } = await sb.auth.getUser(); if (!user) redirect('/login')
   const { data, error } = await sb.rpc('get_quiz', { p_quiz: id })
   if (error || !data) return <main className="min-h-screen grid place-items-center p-5"><div className="glass p-8 text-center grid gap-4"><p role="alert">{error?.message ?? 'Introuvable'}</p><a href="/eleve" className="btn">Retour</a></div></main>
-  return <Player quiz={data as Quiz} preview={!!apercu} back={apercu ? '/admin' : '/eleve'} notice={apercu ? 'Aperçu élève : rien n’est enregistré' : undefined} />
+  const slide = !!(data as any).slide_no
+  // Examen écrit : les conditions doivent avoir été lues avant de commencer (sauf aperçu administrateur)
+  if (slide && !apercu && !(await cookies()).get('ecrit_ok')) redirect('/eleve/examen-ecrit')
+  return <Player quiz={data as Quiz} preview={!!apercu} back={apercu ? (slide ? '/admin/diapositives' : '/admin') : slide ? '/eleve/examen-ecrit' : '/eleve'} notice={apercu ? 'Aperçu élève : rien n’est enregistré' : undefined} />
 }

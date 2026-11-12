@@ -5,7 +5,7 @@ export default async function Admin() {
   const { sb, profile } = await requireRole('admin')
   const c = (t: string, f?: (q: any) => any) => { let q: any = sb.from(t).select('id', { count: 'exact', head: true }); if (f) q = f(q); return q }
   const since = new Date(Date.now() - 8 * 864e5).toISOString()
-  const [st, qs, gm, ex, pg, pe, pp, at, an, rec, last] = await Promise.all([c('profiles', q => q.eq('role', 'student')), c('questions'), c('quizzes', q => q.eq('kind', 'game')), c('quizzes', q => q.eq('kind', 'exam')),
+  const [st, qs, gm, ex, pg, pe, pp, at, an, rec, last] = await Promise.all([c('profiles', q => q.eq('role', 'student')), c('questions', q => q.neq('kind', 'slide')), c('quizzes', q => q.eq('kind', 'game')), c('quizzes', q => q.eq('kind', 'exam').is('slide_no', null)),
     c('quizzes', q => q.eq('kind', 'game').eq('status', 'published')), c('quizzes', q => q.eq('kind', 'exam').eq('status', 'published')), c('paths', q => q.eq('status', 'published')),
     sb.from('attempts').select('score_pct, kind, passed'), sb.from('attempt_answers').select('is_correct, question_id, questions(text, category)'),
     sb.from('attempts').select('created_at').gte('created_at', since), sb.from('attempts').select('user_id, score_pct, created_at, quizzes(title)').order('created_at', { ascending: false }).limit(6)])

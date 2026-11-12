@@ -5,7 +5,7 @@ import { deleteQuiz } from '../../quizActions'
 export default async function List({ params }: { params: Promise<{ kind: string }> }) {
   const { kind } = await params; if (kind !== 'jeux' && kind !== 'examens') notFound()
   const { sb } = await requireRole('admin'); const k = kind === 'jeux' ? 'game' : 'exam'
-  const { data } = await sb.from('quizzes').select('id, title, category, status, is_demo').eq('kind', k).order('created_at', { ascending: false })
+  const { data } = await sb.from('quizzes').select('id, title, category, status, is_demo').eq('kind', k).is('slide_no', null).order('created_at', { ascending: false })
   return (<>
     <div className="flex items-center justify-between gap-3 flex-wrap"><h1 className="text-3xl font-semibold tracking-tight">{k === 'game' ? 'Mini-jeux' : 'Examens blancs'}</h1>
       <Link href={`/admin/q/${kind}/new`} className="btn" style={{ width: 'auto' }}>{k === 'game' ? 'Nouveau mini-jeu' : 'Nouvel examen'}</Link></div>

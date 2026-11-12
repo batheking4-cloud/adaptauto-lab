@@ -3,12 +3,12 @@ import { requireRole } from '@/lib/auth'
 import { Ring, Bars, lastDays } from '@/components/Viz'
 import Logo from '@/components/Logo'
 import TopNav from '@/components/TopNav'
-const NAV: [string, string][] = [['Accueil', '/eleve'], ['Cours', '/eleve/cours'], ['Parcours', '/eleve/parcours'], ['Quiz et examens', '/eleve/quiz'], ['Résultats', '/eleve/resultats'], ['Mes erreurs', '/eleve/erreurs']]
+const NAV: [string, string][] = [['Accueil', '/eleve'], ['Cours', '/eleve/cours'], ['Parcours', '/eleve/parcours'], ['Quiz et examens', '/eleve/quiz'], ['Examen écrit', '/eleve/examen-ecrit'], ['Résultats', '/eleve/resultats'], ['Mes erreurs', '/eleve/erreurs']]
 export default async function Eleve() {
   const { sb, user, profile } = await requireRole('student')
   const [{ data: att }, { data: pub }, { data: err }] = await Promise.all([
     sb.from('attempts').select('quiz_id, score_pct, correct, wrong, kind, created_at, quizzes(title)').eq('user_id', user.id).order('created_at', { ascending: false }),
-    sb.from('quizzes').select('id, title, kind').eq('status', 'published').order('created_at'), sb.rpc('get_error_questions')])
+    sb.from('quizzes').select('id, title, kind').eq('status', 'published').is('slide_no', null).order('created_at'), sb.rpc('get_error_questions')])
   const a = (att ?? []) as any[], p = pub ?? [], done = new Set(a.map(x => x.quiz_id))
   const prog = p.length ? Math.round(100 * p.filter(x => done.has(x.id)).length / p.length) : 0
   const next = p.find(x => !done.has(x.id)) ?? p[0], nerr = Array.isArray(err) ? err.length : 0
@@ -38,6 +38,6 @@ export default async function Eleve() {
         <Link key={l} href={h} className="glass mtile"><span className="ico" aria-hidden="true">{i}</span><b>{v}</b><span className="muted text-sm">{l}</span></Link>)}</div>
       <div className="hscroll"><div className="snapc">{ringProg}</div><div className="snapc">{activity}</div></div>
       <div className="secthead"><h2 className="font-semibold">Accès rapide</h2></div>
-      <div className="grid grid-cols-2 gap-3">{[['📖', 'Mes cours', '/eleve/cours'], ['🧭', 'Mes parcours', '/eleve/parcours'], ['🎮', 'Jouer', '/eleve/quiz'], ['📊', 'Résultats', '/eleve/resultats'], ['🎯', 'Mes erreurs', '/eleve/erreurs']].map(([i, l, h]) => <Link key={h} href={h} className="glass mact"><span aria-hidden="true">{i}</span>{l}</Link>)}</div>
+      <div className="grid grid-cols-2 gap-3">{[['📝', 'Examen écrit', '/eleve/examen-ecrit'], ['📖', 'Mes cours', '/eleve/cours'], ['🧭', 'Mes parcours', '/eleve/parcours'], ['🎮', 'Jouer', '/eleve/quiz'], ['📊', 'Résultats', '/eleve/resultats'], ['🎯', 'Mes erreurs', '/eleve/erreurs']].map(([i, l, h]) => <Link key={h} href={h} className="glass mact"><span aria-hidden="true">{i}</span>{l}</Link>)}</div>
       {todoCard}{recent}</div></div></main>
 }

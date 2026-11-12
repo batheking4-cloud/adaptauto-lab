@@ -34,13 +34,17 @@ export async function saveQuestion(fd: FormData) {
   redirect('/admin/questions')
 }
 
-export async function saveSettings(fd: FormData) {
+export async function saveSettings(fd: FormData): Promise<{ ok: boolean; error?: string }> {
   const { sb } = await requireRole('admin')
   const reset = fd.get('reset') === '1'
   const mode = reset ? 'dark' : fd.get('mode') === 'light' ? 'light' : 'dark'
-  const color = reset ? '#0a84ff' : String(fd.get('color'))
-  if (!/^#[0-9a-fA-F]{6}$/.test(color)) throw new Error('Couleur invalide')
-  const { error } = await sb.from('app_settings').update({ mode, primary_color: color, whatsapp_number: String(fd.get('wa') || '').replace(/[^0-9+]/g, '').slice(0, 16), updated_at: new Date().toISOString() }).eq('id', 1)
-  if (error) throw new Error(error.message)
+  let color = reset ? '#1a8cff' : String(fd.get('color') || '').trim(); if (!color.startsWith('#')) color = '#' + color
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { ok: false, error: 'Couleur invalide : 6 caractères hexadécimaux, par exemple #1A8CFF.' }
+  const row = { mode, primary_color: color.toLowerCase(), updated_at: new Date().toISOString() }
+  const u = await sb.from('app_settings').update(row).eq('id', 1).select('id')
+  if (u.error) return { ok: false, error: u.error.message }
+  if (!u.data?.length) { const ins = await sb.from('app_settings').insert({ id: 1, ...row }); if (ins.error) return { ok: false, error: ins.error.message } }
+  if (fd.has('wa')) { const r = await sb.from('app_settings').update({ whatsapp_number: String(fd.get('wa') ?? '').replace(/[^0-9+]/g, '').slice(0, 16) }).eq('id', 1); if (r.error && !/whatsapp_number/.test(r.error.message)) return { ok: false, error: r.error.message } }
   revalidatePath('/', 'layout')
+  return { ok: true }
 }
