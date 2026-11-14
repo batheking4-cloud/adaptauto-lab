@@ -8,7 +8,7 @@ export default async function Admin() {
   const [st, qs, gm, ex, pg, pe, pp, at, an, rec, last] = await Promise.all([c('profiles', q => q.eq('role', 'student')), c('questions', q => q.neq('kind', 'slide')), c('quizzes', q => q.eq('kind', 'game')), c('quizzes', q => q.eq('kind', 'exam').is('slide_no', null)),
     c('quizzes', q => q.eq('kind', 'game').eq('status', 'published')), c('quizzes', q => q.eq('kind', 'exam').eq('status', 'published')), c('paths', q => q.eq('status', 'published')),
     sb.from('attempts').select('score_pct, kind, passed'), sb.from('attempt_answers').select('is_correct, question_id, questions(text, category)'),
-    sb.from('attempts').select('created_at').gte('created_at', since), sb.from('attempts').select('user_id, score_pct, created_at, quizzes(title)').order('created_at', { ascending: false }).limit(6)])
+    sb.from('attempts').select('created_at').gte('created_at', since), sb.from('attempts').select('user_id, kind, score_pct, created_at, quizzes(title)').order('created_at', { ascending: false }).limit(6)])
   const A = (at.data ?? []) as any[]; const avg = A.length ? Math.round(A.reduce((s, x) => s + x.score_pct, 0) / A.length) : 0
   const exams = A.filter(x => x.kind === 'exam'); const rate = exams.length ? Math.round(100 * exams.filter(x => x.passed).length / exams.length) : 0
   const qa: Record<string, { t: string; w: number; n: number }> = {}, ca: Record<string, { w: number; n: number }> = {}
@@ -19,7 +19,7 @@ export default async function Admin() {
   const L = (last.data ?? []) as any[]; const ids = [...new Set(L.map(x => x.user_id))]
   const { data: pr } = ids.length ? await sb.from('profiles').select('id, full_name').in('id', ids) : { data: [] as any[] }
   const nm = (id: string) => (pr ?? []).find((p: any) => p.id === id)?.full_name || 'Élève'
-  const todo: [string, boolean, string][] = [['Inscrire un élève', (st.count ?? 0) > 0, '/admin/eleves'], ['Créer des questions', (qs.count ?? 0) > 0, '/admin/questions'], ['Publier un mini-jeu', (pg.count ?? 0) > 0, '/admin/q/jeux'],
+  const todo: [string, boolean, string][] = [['Inscrire un élève', (st.count ?? 0) > 0, '/admin/eleves'], ['Créer des questions', (qs.count ?? 0) > 0, '/admin/questions'], 
     ['Publier un examen blanc', (pe.count ?? 0) > 0, '/admin/q/examens'], ['Publier un parcours', (pp.count ?? 0) > 0, '/admin/parcours']]
   const nd = todo.filter(t => t[1]).length, first = (profile.full_name || 'administrateur').split(' ')[0]
   const week = ((rec.data ?? []) as any[]).map(x => x.created_at)
@@ -31,8 +31,8 @@ export default async function Admin() {
     {todo.map(([l, ok, h]) => <Link key={l} href={h} className="todo"><span className={`dot${ok ? ' on' : ''}`}>{ok ? '✓' : ''}</span><span>{l}</span></Link>)}</div>
   const hardCard = <div className="glass p-5 grid content-start gap-2"><h2 className="font-semibold">Points difficiles</h2>{hard.length ? hard.map(x => <p key={x.t} className="text-sm">{x.t} <span className="muted">· {Math.round(100 * x.w / x.n)} % d’erreurs</span></p>) : <p className="muted text-sm">Pas encore de données.</p>}
     {hardC.length > 0 && <p className="muted text-xs pt-1">Catégories : {hardC.map(([k, x]) => `${k} (${Math.round(100 * x.w / x.n)} %)`).join(' · ')}</p>}</div>
-  const recent = <div className="glass p-5"><h2 className="font-semibold mb-2">Activité récente</h2>{L.length ? L.map((a, i) => <div key={i} className="flex justify-between gap-3 text-sm py-2" style={{ borderBottom: '1px solid var(--line)' }}><span>{nm(a.user_id)} <span className="muted">· {a.quizzes?.title ?? 'Contenu supprimé'}</span></span><span className="font-semibold">{a.score_pct} %</span></div>) : <p className="muted text-sm">Aucune activité pour l’instant.</p>}</div>
-  const chips: [string, number, string][] = [['Élèves', st.count ?? 0, '🎓'], ['Questions', qs.count ?? 0, '❓'], ['Mini-jeux', gm.count ?? 0, '🎮']]
+  const recent = <div className="glass p-5"><h2 className="font-semibold mb-2">Activité récente</h2>{L.length ? L.map((a, i) => <div key={i} className="flex justify-between gap-3 text-sm py-2" style={{ borderBottom: '1px solid var(--line)' }}><span>{nm(a.user_id)} <span className="muted">· {a.quizzes?.title ?? (a.kind === 'practice' ? 'Entraînement' : 'Contenu supprimé')}</span></span><span className="font-semibold">{a.score_pct} %</span></div>) : <p className="muted text-sm">Aucune activité pour l’instant.</p>}</div>
+  const chips: [string, number, string][] = [['Élèves', st.count ?? 0, '🎓'], ['Questions', qs.count ?? 0, '❓'], ['Examens', ex.count ?? 0, '📝']]
   return (<>
     <div className="hidden lg:grid gap-5">
       <section className="grid gap-4 grid-cols-[1fr_auto] items-end"><div><p className="muted text-sm">Tableau de bord</p><h1 className="text-4xl font-semibold tracking-tight">Bienvenue, {profile.full_name || 'administrateur'}</h1></div>
@@ -40,17 +40,17 @@ export default async function Admin() {
       <section className="grid gap-4 grid-cols-12">
         <div className="col-span-4 grid">{ringAvg}</div><div className="col-span-4 grid">{activity}</div><div className="col-span-4 row-span-2 grid">{checklist}</div>
         <div className="col-span-4 grid">{examRing}</div><div className="col-span-4 grid">{hardCard}</div>
-        <div className="col-span-4 self-start glass p-4"><details className="acc" open><summary>Contenus <span>▾</span></summary><Link href="/admin/questions">Banque de questions</Link><Link href="/admin/q/jeux">Mini-jeux</Link><Link href="/admin/q/examens">Examens blancs</Link><Link href="/admin/parcours">Parcours</Link></details>
+        <div className="col-span-4 self-start glass p-4"><details className="acc" open><summary>Contenus <span>▾</span></summary><Link href="/admin/questions">Banque de questions</Link><Link href="/admin/diapositives">Examen écrit (diapositives)</Link><Link href="/admin/q/examens">Examens blancs</Link><Link href="/admin/parcours">Parcours</Link></details>
           <details className="acc"><summary>Médias <span>▾</span></summary><Link href="/admin/images">Bibliothèque d’images</Link><Link href="/admin/mixage">MIXAGE</Link></details>
           <details className="acc"><summary>Gestion <span>▾</span></summary><Link href="/admin/eleves">Élèves</Link><Link href="/admin/reglages">Paramètres et apparence</Link></details></div>
         <div className="col-span-8 grid">{recent}</div></section></div>
     <div className="lg:hidden grid gap-5">
       <div className="mhead"><div><p className="muted text-sm">Tableau de bord</p><h1 className="text-2xl font-semibold tracking-tight">Bonjour {first}</h1></div><span className="avatar" aria-hidden="true">{first[0]?.toUpperCase()}</span></div>
-      <div className="mtiles">{([['Élèves', st.count, '🎓', '/admin/eleves'], ['Questions', qs.count, '❓', '/admin/questions'], ['Mini-jeux', gm.count, '🎮', '/admin/q/jeux'], ['Examens', ex.count, '📝', '/admin/q/examens']] as [string, number | null, string, string][]).map(([l, v, i, h]) =>
+      <div className="mtiles">{([['Élèves', st.count, '🎓', '/admin/eleves'], ['Questions', qs.count, '❓', '/admin/questions'], ['Diapositives', 12, '🗂️', '/admin/diapositives'], ['Examens', ex.count, '📝', '/admin/q/examens']] as [string, number | null, string, string][]).map(([l, v, i, h]) =>
         <Link key={l} href={h} className="glass mtile"><span className="ico" aria-hidden="true">{i}</span><b>{v ?? 0}</b><span className="muted text-sm">{l}</span></Link>)}</div>
       <div className="hscroll"><div className="snapc">{ringAvg}</div><div className="snapc">{activity}</div><div className="snapc">{examRing}</div></div>
       {checklist}
       <div className="secthead"><h2 className="font-semibold">Actions rapides</h2></div>
-      <div className="grid grid-cols-2 gap-3">{[['❓', 'Nouvelle question', '/admin/questions/new'], ['🎮', 'Nouveau mini-jeu', '/admin/q/jeux/new'], ['📝', 'Nouvel examen', '/admin/q/examens/new'], ['🧭', 'Nouveau parcours', '/admin/parcours/new']].map(([i, l, h]) => <Link key={h} href={h} className="glass mact"><span aria-hidden="true">{i}</span>{l}</Link>)}</div>
+      <div className="grid grid-cols-2 gap-3">{[['❓', 'Nouvelle question', '/admin/questions/new'], ['🔊', 'Audios de l’examen', '/admin/mixage'], ['📝', 'Nouvel examen', '/admin/q/examens/new'], ['🧭', 'Nouveau parcours', '/admin/parcours/new']].map(([i, l, h]) => <Link key={h} href={h} className="glass mact"><span aria-hidden="true">{i}</span>{l}</Link>)}</div>
       {hardCard}{recent}</div></>)
 }

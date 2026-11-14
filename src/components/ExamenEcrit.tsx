@@ -23,13 +23,14 @@ function Room() {
       {n === seat && <span key={'c' + seat} className="cand" aria-hidden="true">🧑‍🎓</span>}{n === seat && <span key={'s' + seat} className="sl" aria-hidden="true">📄 {String(n).padStart(2, '0')}</span>}</div>))}</div>
     <p className="muted text-sm">12 rangées de chaises · une place = une diapositive.</p></div>)
 }
-export default function ExamenEcrit({ slides, best, accepted }: { slides: Slide[]; best: Record<string, Best>; accepted: boolean }) {
+type Other = { id: string; title: string; description: string; duration_min: number | null; pass_score: number }
+export default function ExamenEcrit({ slides, best, accepted, others = [] }: { slides: Slide[]; best: Record<string, Best>; accepted: boolean; others?: Other[] }) {
   const [step, setStep] = useState<'intro' | 'grid'>(accepted ? 'grid' : 'intro')
   function start() { document.cookie = 'ecrit_ok=1; path=/; max-age=7200; samesite=lax'; setStep('grid'); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   const list: Slide[] = Array.from({ length: 12 }, (_, i) => slides.find(s => s.slide_no === i + 1) ?? { slide_no: i + 1, series: `B${i + 1}`, quiz_id: null, status: 'soon', question_count: 0 })
   if (step === 'intro') return (
     <main className="max-w-4xl mx-auto p-3 sm:p-5 pb-8 grid gap-5">
-      <Link href="/eleve/quiz" className="back">← Retour</Link>
+      <Link href="/eleve" className="back">← Retour</Link>
       <header className="grid gap-2 text-center"><p className="muted text-sm" style={{ letterSpacing: '.14em' }}>EXAMEN BLANC · ÉPREUVE ÉCRITE</p>
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight" style={{ textTransform: 'uppercase' }}>Conditions de l’examen écrit au Sénégal</h1>
         <p className="muted">Ce sont les conditions réelles de l’épreuve. Lis-les avant de commencer.</p></header>
@@ -39,7 +40,7 @@ export default function ExamenEcrit({ slides, best, accepted }: { slides: Slide[
       <button className="btn" onClick={start} style={{ fontSize: 17, padding: '16px 22px' }}>J’AI COMPRIS — COMMENCER</button></main>)
   return (
     <main className="max-w-5xl mx-auto p-3 sm:p-5 pb-8 grid gap-5">
-      <Link href="/eleve/quiz" className="back">← Retour</Link>
+      <Link href="/eleve" className="back">← Retour</Link>
       <header className="grid gap-1"><h1 className="text-3xl font-semibold tracking-tight">Choisis ta diapositive</h1>
         <p className="muted">Le jour J, tu ne sais pas laquelle tu recevras : entraîne-toi sur les 12. 25 questions · 4 erreurs maximum.</p></header>
       <section className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">{list.map((s, i) => { const on = s.status === 'available' && !!s.quiz_id; const b = s.quiz_id ? best[s.quiz_id] : undefined
@@ -48,5 +49,6 @@ export default function ExamenEcrit({ slides, best, accepted }: { slides: Slide[
             : <span className="text-sm" style={{ fontWeight: 700 }}>🔒 {s.status === 'incomplete' ? `Incomplète · ${s.question_count}/25` : 'Bientôt disponible'}</span>}</>)
         return on ? <Link key={s.slide_no} href={`/eleve/jouer/${s.quiz_id}`} className="glass slidecard" style={{ animationDelay: `${i * .05}s` }}>{inner}</Link>
           : <div key={s.slide_no} className="glass slidecard off" aria-disabled="true" style={{ animationDelay: `${i * .05}s` }}>{inner}</div> })}</section>
+      {others.length > 0 && <section className="grid gap-3"><h2 className="text-xl font-semibold">Autres examens blancs</h2>{others.map(o => <Link key={o.id} href={`/eleve/jouer/${o.id}`} className="glass p-5 block" style={{ textDecoration: 'none', color: 'inherit' }}><p className="font-semibold">{o.title}</p><p className="muted text-sm">{o.description}{o.duration_min ? ` ${o.duration_min} min ·` : ''} réussite à {o.pass_score} %</p></Link>)}</section>}
       <button className="back" onClick={() => setStep('intro')}>↺ Revoir les conditions</button></main>)
 }

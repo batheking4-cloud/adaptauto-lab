@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 export default function TabBar({ items, more }: { items: [string, string, string][]; more: [string, string][] }) {
   const p = usePathname() ?? ''; const [open, setOpen] = useState(false)
-  if (p.startsWith('/eleve/jouer') || p.startsWith('/eleve/erreurs')) return null
+  if (p.startsWith('/eleve/jouer') || p.startsWith('/eleve/erreurs') || p.startsWith('/eleve/s-entrainer/jouer')) return null
   return (<>
     <div className="tabspacer" aria-hidden="true" />
     {open && <div className="sheetbg" onClick={() => setOpen(false)}><div className="sheet" onClick={e => e.stopPropagation()}>

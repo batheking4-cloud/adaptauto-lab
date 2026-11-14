@@ -3,7 +3,7 @@ import { requireRole } from '@/lib/auth'
 import { saveQuiz } from '../../../quizActions'
 import QuizForm from './QuizForm'
 export default async function Edit({ params }: { params: Promise<{ kind: string; id: string }> }) {
-  const { kind, id } = await params; if (kind !== 'jeux' && kind !== 'examens') notFound()
+  const { kind, id } = await params; if (kind !== 'examens') notFound()
   const { sb } = await requireRole('admin')
   let quiz: any = { id: '', kind: kind === 'jeux' ? 'game' : 'exam', title: '', description: '', category: 'Général', difficulty: 1, intro_text: '', outro_text: '', duration_min: 20, pass_score: 70, status: 'draft' }
   let selected: string[] = []

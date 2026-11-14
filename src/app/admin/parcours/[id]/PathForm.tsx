@@ -27,7 +27,7 @@ export default function PathForm({ path, initial, quizzes, action }: { path: any
             <option value="free">Accès libre</option><option value="previous">Après avoir terminé l’étape précédente</option><option value="previous_score">Après un score minimum à l’étape précédente</option><option value="all_previous">Après validation de toutes les étapes précédentes</option></select>
             {s.unlock_type === 'previous_score' && <input className="input" type="number" min={0} max={100} value={s.min_score} onChange={e => set(i, { min_score: Number(e.target.value) })} aria-label="Score minimum (%)" />}</div>
         </div>))}
-      <div className="flex gap-2 flex-wrap">{Object.keys(T).map(t => <button key={t} type="button" className="btn btn-ghost" onClick={() => add(t)}>+ {T[t]}</button>)}</div>
+      <div className="flex gap-2 flex-wrap">{Object.keys(T).filter(t => t !== 'game').map(t => <button key={t} type="button" className="btn btn-ghost" onClick={() => add(t)}>+ {T[t]}</button>)}</div>
       <div className="flex gap-2 flex-wrap"><button className="btn btn-ghost" name="status" value="draft">Enregistrer comme brouillon</button><button className="btn" style={{ width: 'auto' }} name="status" value="published">Publier</button>
         {path.id && <a className="btn btn-ghost" href={`/eleve/parcours/${path.id}?apercu=1`} target="_blank">Aperçu élève</a>}</div>
     </form>)

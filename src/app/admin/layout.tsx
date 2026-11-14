@@ -4,7 +4,7 @@ import Logo from '@/components/Logo'
 import TopNav from '@/components/TopNav'
 import BackButton from '@/components/BackButton'
 import TabBar from '@/components/TabBar'
-const NAV: [string, string][] = [['Tableau de bord', '/admin'], ['Élèves', '/admin/eleves'], ['Questions', '/admin/questions'], ['Mini-jeux', '/admin/q/jeux'], ['Examens', '/admin/q/examens'], ['Parcours', '/admin/parcours'], ['Cours', '/admin/cours'], ['Examen écrit', '/admin/diapositives'], ['MIXAGE', '/admin/mixage'], ['Images', '/admin/images'], ['Apparence', '/admin/reglages']]
+const NAV: [string, string][] = [['Tableau de bord', '/admin'], ['Élèves', '/admin/eleves'], ['Questions', '/admin/questions'], ['Examens', '/admin/q/examens'], ['Parcours', '/admin/parcours'], ['Cours', '/admin/cours'], ['Examen écrit', '/admin/diapositives'], ['MIXAGE', '/admin/mixage'], ['Images', '/admin/images'], ['Apparence', '/admin/reglages']]
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireRole('admin')
   return (<>
@@ -13,6 +13,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="hidden lg:block min-w-0"><TopNav items={NAV} /></div>
         <form action="/auth/signout" method="post" className="hidden lg:block"><button className="btn btn-ghost">Se déconnecter</button></form></header>
       <BackButton />{children}</div></div>
-    <TabBar items={[['Accueil', '/admin', '🏠'], ['Questions', '/admin/questions', '❓'], ['Jeux', '/admin/q/jeux', '🎮'], ['Élèves', '/admin/eleves', '🎓']]}
+    <TabBar items={[['Accueil', '/admin', '🏠'], ['Questions', '/admin/questions', '❓'], ['Examen', '/admin/diapositives', '📝'], ['Élèves', '/admin/eleves', '🎓']]}
       more={[['Examens blancs', '/admin/q/examens'], ['Parcours', '/admin/parcours'], ['Cours (apprentissage)', '/admin/cours'], ['Examen écrit (diapositives)', '/admin/diapositives'], ['MIXAGE', '/admin/mixage'], ['Images', '/admin/images'], ['Apparence', '/admin/reglages']]} /></>)
 }
